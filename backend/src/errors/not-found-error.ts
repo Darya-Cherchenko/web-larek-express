@@ -1,4 +1,3 @@
-/* eslint-disable linebreak-style */
 import { Error } from 'mongoose';
 
 class NotFoundError extends Error {

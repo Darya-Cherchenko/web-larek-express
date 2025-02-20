@@ -1,4 +1,3 @@
-/* eslint-disable linebreak-style */
 import mongoose from 'mongoose';
 
 export interface IProduct {
@@ -8,8 +7,8 @@ export interface IProduct {
     originalName: string;
   };
   category: string;
-  description?: string;
-  price?: number|null;
+  description: string;
+  price: number;
 }
 
 const productSchema = new mongoose.Schema<IProduct>({
@@ -21,11 +20,9 @@ const productSchema = new mongoose.Schema<IProduct>({
     unique: true,
   },
   image: {
-    fileName: {
-      type: String,
-    },
-    originalName: {
-      type: String,
+    type: {
+      fileName: String,
+      originalName: String,
     },
     required: true,
   },

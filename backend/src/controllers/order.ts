@@ -1,11 +1,11 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import mongoose from 'mongoose';
 import { faker } from '@faker-js/faker';
-import Joi from 'joi';
+import { Joi, celebrate, Segments } from 'celebrate';
 
-import product from 'models/product';
-import BadRequestError from 'errors/bad-request-error';
-import ServerError from 'errors/server-error';
+import BadRequestError from '../errors/bad-request-error';
+import ServerError from '../errors/server-error';
+import Product from '../models/product';
 
 export interface IOrder {
   items: string[],
@@ -27,11 +27,19 @@ const orderSchema = Joi.object<IOrder>({
   address: Joi.string().required(),
 });
 
-export const createOrder = (req: Request, res: Response) => {
+export const orderRouteValidator = celebrate({
+  [Segments.BODY]: orderSchema,
+});
+
+export const createOrder = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const { error, value } = orderSchema.validate(req.body as IOrder);
     if (error) {
-      return (new BadRequestError(`Ошибка валидатора: ${error.message}`));
+      return next(new BadRequestError(`Ошибка проверки: ${error.message}`));
     }
 
     const products = (
@@ -44,18 +52,20 @@ export const createOrder = (req: Request, res: Response) => {
       })
     ).filter((product) => !!product.price);
 
-    // Проверяем что товары есть в базе и продаются(price > 0)
     if (products.length !== value.items.length) {
-      return new BadRequestError(
-        'Ошибка в данных продукта: Не все продукты доступны',
+      return next(
+        new BadRequestError(
+          'Ошибка в данных продукта: Не все продукты доступны',
+        ),
       );
     }
 
-    // Проверяем соответствие суммы
-    const productSum = products.reduce((sum, curr) => sum + curr.price, 0);
+    const productSum = products.reduce((sum, curr) => sum + (curr.price || 0), 0);
     if (value.total !== productSum) {
-      return new BadRequestError(
-        'Ошибка в данных заказа: общая сумма заказа не равна сумме базы данных цен на товары',
+      return next(
+        new BadRequestError(
+          'Ошибка в данных заказа: общая сумма заказа не равна сумме базы данных цен на товары',
+        ),
       );
     }
 
@@ -64,6 +74,6 @@ export const createOrder = (req: Request, res: Response) => {
       total: productSum,
     });
   } catch (error) {
-    return new ServerError(`Server error: ${JSON.stringify(error)}`);
+    return next(new ServerError(`Ошибка сервера: ${JSON.stringify(error)}`));
   }
 };

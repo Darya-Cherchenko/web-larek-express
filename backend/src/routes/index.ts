@@ -1,6 +1,6 @@
-/* eslint-disable linebreak-style */
 import routerProduct from './products';
+import routerOrder from './order';
 
-const routers = [routerProduct];
+const routers = [routerProduct, routerOrder];
 
 export default routers;

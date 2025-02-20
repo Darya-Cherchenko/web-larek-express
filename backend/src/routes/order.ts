@@ -1,10 +1,8 @@
-/* eslint-disable linebreak-style */
 import { Router } from 'express';
-import { getProducts, createProduct } from '../controllers/products';
+import { createOrder, orderRouteValidator } from '../controllers/order';
 
-const routerProduct = Router();
+const routerOrder = Router();
 
-routerProduct.get('/', getProducts);
-routerProduct.post('/', createProduct);
+routerOrder.post('/order', orderRouteValidator, createOrder);
 
-export default routerProduct;
+export default routerOrder;
